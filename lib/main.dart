@@ -29,6 +29,7 @@ import 'package:here_sdk/search.dart';
 import 'package:here_sdk_reference_application_flutter/environment.dart';
 import 'package:provider/provider.dart';
 
+import 'car/car_to_flutter.dart';
 import 'common/application_preferences.dart';
 import 'common/custom_map_style_settings.dart';
 import 'common/ui_style.dart';
@@ -100,6 +101,16 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (context) => AppPreferences()),
         Provider(create: (context) => PositioningEngine()),
         ChangeNotifierProvider(create: (context) => CustomMapStyleSettings()),
+        Provider(
+            lazy: false,
+            create: (context) {
+                final positioningEngine =
+                    Provider.of<PositioningEngine>(context, listen: false);
+
+                return CarToFlutter(positioningEngine);
+            },
+            dispose: (context, value) => value.dispose(),
+        ),
       ],
       child: MaterialApp(
         localizationsDelegates: [

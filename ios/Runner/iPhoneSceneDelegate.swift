@@ -1,5 +1,7 @@
 // `iPhoneSceneDelegate` manages the lifecycle events of a UI scene for the application.
 class iPhoneSceneDelegate: UIResponder, UIWindowSceneDelegate {
+    
+    static private(set) var flutterEngine: FlutterEngine? = nil
 
     var window: UIWindow?
 
@@ -17,5 +19,7 @@ class iPhoneSceneDelegate: UIResponder, UIWindowSceneDelegate {
         let controller = FlutterViewController.init(engine: flutterEngine, nibName: nil, bundle: nil)
         window?.rootViewController = controller
         window?.makeKeyAndVisible()
+        
+        iPhoneSceneDelegate.flutterEngine = flutterEngine
     }
 }
