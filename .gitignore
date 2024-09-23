@@ -9,6 +9,7 @@
 .history
 .svn/
 .env/
+.vscode/
 build.sh
 export-distribution.plist
 
@@ -45,3 +46,7 @@ app.*.map.json
 
 # HERE SDK 4.0 for flutter
 plugins/here_sdk
+
+# FVM Version Cache
+.fvm/
+.fvmrc
