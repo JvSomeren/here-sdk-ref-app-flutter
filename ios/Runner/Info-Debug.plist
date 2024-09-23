@@ -66,5 +66,38 @@
 	<false/>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
+    <!-- Scene configuration -->
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <true/>
+        <key>UISceneConfigurations</key>
+        <dict>
+            <!-- iPhone and iPad Scene Configuration -->
+            <key>UIWindowSceneSessionRoleApplication</key>
+            <array>
+                <dict>
+                    <key>UISceneClassName</key>
+                    <string>UIWindowScene</string>
+                    <key>UISceneDelegateClassName</key>
+                    <string>$(PRODUCT_MODULE_NAME).iPhoneSceneDelegate</string>
+                    <key>UISceneConfigurationName</key>
+                    <string>Default Configuration</string>
+                </dict>
+            </array>
+            <!-- CarPlay Scene Configuration -->
+            <key>CPTemplateApplicationSceneSessionRoleApplication</key>
+            <array>
+                <dict>
+                    <key>UISceneClassName</key>
+                    <string>CPTemplateApplicationScene</string>
+                    <key>UISceneDelegateClassName</key>
+                    <string>$(PRODUCT_MODULE_NAME).CarPlaySceneDelegate</string>
+                    <key>UISceneConfigurationName</key>
+                    <string>Default CarPlay Configuration</string>
+                </dict>
+            </array>
+        </dict>
+    </dict>
 </dict>
 </plist>
