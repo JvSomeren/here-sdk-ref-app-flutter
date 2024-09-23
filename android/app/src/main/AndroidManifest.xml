@@ -21,6 +21,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
 
+    <!-- Declare Android Auto specific permissions. -->
+    <uses-permission android:name="androidx.car.app.ACCESS_SURFACE"/>
+    <uses-permission android:name="androidx.car.app.NAVIGATION_TEMPLATES"/>
+
     <application
         android:name=".MainApplication"
         android:icon="@mipmap/ic_launcher"
@@ -61,5 +65,24 @@
             android:description="@string/service_description"
             android:exported="false" />
         <service android:name="dev.cruv.ringtone_player.PlayerService" />
+
+        <!-- Declare the CarAppService for use with Android Auto. -->
+        <service
+            android:name=".HelloMapCarAppService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.car.app.CarAppService"/>
+                <category android:name="androidx.car.app.category.NAVIGATION"/>
+            </intent-filter>
+        </service>
+
+        <!-- Declare the Android Auto API Level and layout template. -->
+        <meta-data
+            android:name="androidx.car.app.minCarApiLevel"
+            android:value="1"/>
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc"
+            tools:ignore="MetadataTagInsideApplicationTag"/>
     </application>
 </manifest>

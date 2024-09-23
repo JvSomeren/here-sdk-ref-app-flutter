@@ -80,4 +80,8 @@ dependencies {
     implementation "androidx.core:core-ktx:$core_version"
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'androidx.core:core-splashscreen:1.0.1'
+
+    // Android Auto
+    implementation "androidx.car.app:app:1.2.0-rc01"
+    compileOnly fileTree(dir: '../../plugins/here_sdk/android/libs', include: ['*.aar'])
 }
