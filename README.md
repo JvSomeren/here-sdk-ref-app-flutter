@@ -1,5 +1,9 @@
 # HERE SDK Reference Application for Flutter
 
+This repository accompanies the article (link will follow) written for the HERE blog. It explains step-by-step how Android Auto and Apple CarPlay can be implemented for a Flutter project.  
+Each section has its own dedicated commit, see [the commits](https://github.com/JvSomeren/here-sdk-ref-app-flutter/commits/feat/android_auto-apple_carplay/?author=JvSomeren) of this repository, showcasing the changes. The Markdown source for the article can be found [here](./article/ARTICLE.md).
+
+
 The reference application for the [HERE SDK for Flutter (_Navigate Edition_)](https://developer.here.com/documentation/flutter-sdk-navigate/) shows how a complex and release-ready project targeting iOS and Android devices may look like. You can use it as a source of inspiration for your own HERE SDK based projects - in parts or as a whole.
 
 ## Overview
