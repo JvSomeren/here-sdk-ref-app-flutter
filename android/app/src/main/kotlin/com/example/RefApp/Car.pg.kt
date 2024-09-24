@@ -12,6 +12,26 @@ import io.flutter.plugin.common.StandardMessageCodec
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
+private fun wrapResult(result: Any?): List<Any?> {
+  return listOf(result)
+}
+
+private fun wrapError(exception: Throwable): List<Any?> {
+  return if (exception is FlutterError) {
+    listOf(
+      exception.code,
+      exception.message,
+      exception.details
+    )
+  } else {
+    listOf(
+      exception.javaClass.simpleName,
+      exception.toString(),
+      "Cause: " + exception.cause + ", Stacktrace: " + Log.getStackTraceString(exception)
+    )
+  }
+}
+
 private fun createConnectionError(channelName: String): FlutterError {
   return FlutterError("channel-error",  "Unable to establish connection on channel: '$channelName'.", "")}
 
@@ -26,12 +46,118 @@ class FlutterError (
   override val message: String? = null,
   val details: Any? = null
 ) : Throwable()
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class PgRouteOption (
+  val hashCode: Long,
+  val lengthInMeters: Long,
+  val durationInSeconds: Long,
+  val distanceString: String,
+  val durationString: String
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PgRouteOption {
+      val hashCode = pigeonVar_list[0] as Long
+      val lengthInMeters = pigeonVar_list[1] as Long
+      val durationInSeconds = pigeonVar_list[2] as Long
+      val distanceString = pigeonVar_list[3] as String
+      val durationString = pigeonVar_list[4] as String
+      return PgRouteOption(hashCode, lengthInMeters, durationInSeconds, distanceString, durationString)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      hashCode,
+      lengthInMeters,
+      durationInSeconds,
+      distanceString,
+      durationString,
+    )
+  }
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class PgLatLng (
+  val latitude: Double,
+  val longitude: Double
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PgLatLng {
+      val latitude = pigeonVar_list[0] as Double
+      val longitude = pigeonVar_list[1] as Double
+      return PgLatLng(latitude, longitude)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      latitude,
+      longitude,
+    )
+  }
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class PgRouteOptionsUpdatedMessage (
+  val origin: PgLatLng,
+  val destination: PgLatLng,
+  val routeOptions: List<PgRouteOption?>
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PgRouteOptionsUpdatedMessage {
+      val origin = pigeonVar_list[0] as PgLatLng
+      val destination = pigeonVar_list[1] as PgLatLng
+      val routeOptions = pigeonVar_list[2] as List<PgRouteOption?>
+      return PgRouteOptionsUpdatedMessage(origin, destination, routeOptions)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      origin,
+      destination,
+      routeOptions,
+    )
+  }
+}
 private open class CarPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
-    return     super.readValueOfType(type, buffer)
+    return when (type) {
+      129.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PgRouteOption.fromList(it)
+        }
+      }
+      130.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PgLatLng.fromList(it)
+        }
+      }
+      131.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PgRouteOptionsUpdatedMessage.fromList(it)
+        }
+      }
+      else -> super.readValueOfType(type, buffer)
+    }
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
-    super.writeValue(stream, value)
+    when (value) {
+      is PgRouteOption -> {
+        stream.write(129)
+        writeValue(stream, value.toList())
+      }
+      is PgLatLng -> {
+        stream.write(130)
+        writeValue(stream, value.toList())
+      }
+      is PgRouteOptionsUpdatedMessage -> {
+        stream.write(131)
+        writeValue(stream, value.toList())
+      }
+      else -> super.writeValue(stream, value)
+    }
   }
 }
 
@@ -58,6 +184,144 @@ class CarToFlutterApi(private val binaryMessenger: BinaryMessenger, private val 
       } else {
         callback(Result.failure(createConnectionError(channelName)))
       } 
+    }
+  }
+  fun updateSelectedRouteOption(routeOptionIndexArg: Long, callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.here_sdk_reference_application_flutter.CarToFlutterApi.updateSelectedRouteOption$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(listOf(routeOptionIndexArg)) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
+        }
+      } else {
+        callback(Result.failure(createConnectionError(channelName)))
+      } 
+    }
+  }
+  fun stopRouting(callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.here_sdk_reference_application_flutter.CarToFlutterApi.stopRouting$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(null) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
+        }
+      } else {
+        callback(Result.failure(createConnectionError(channelName)))
+      } 
+    }
+  }
+  fun onDisconnect(callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.here_sdk_reference_application_flutter.CarToFlutterApi.onDisconnect$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(null) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
+        }
+      } else {
+        callback(Result.failure(createConnectionError(channelName)))
+      } 
+    }
+  }
+}
+/** Generated interface from Pigeon that represents a handler of messages from Flutter. */
+interface FlutterToCarApi {
+  fun onStartRouting()
+  fun onRouteOptionsUpdated(message: PgRouteOptionsUpdatedMessage)
+  fun onRouteOptionSelected(routeOptionIndex: Long)
+  fun onStopRouting()
+
+  companion object {
+    /** The codec used by FlutterToCarApi. */
+    val codec: MessageCodec<Any?> by lazy {
+      CarPigeonCodec()
+    }
+    /** Sets up an instance of `FlutterToCarApi` to handle messages through the `binaryMessenger`. */
+    @JvmOverloads
+    fun setUp(binaryMessenger: BinaryMessenger, api: FlutterToCarApi?, messageChannelSuffix: String = "") {
+      val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.here_sdk_reference_application_flutter.FlutterToCarApi.onStartRouting$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              api.onStartRouting()
+              listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.here_sdk_reference_application_flutter.FlutterToCarApi.onRouteOptionsUpdated$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val messageArg = args[0] as PgRouteOptionsUpdatedMessage
+            val wrapped: List<Any?> = try {
+              api.onRouteOptionsUpdated(messageArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.here_sdk_reference_application_flutter.FlutterToCarApi.onRouteOptionSelected$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val routeOptionIndexArg = args[0] as Long
+            val wrapped: List<Any?> = try {
+              api.onRouteOptionSelected(routeOptionIndexArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.here_sdk_reference_application_flutter.FlutterToCarApi.onStopRouting$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              api.onStopRouting()
+              listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
     }
   }
 }

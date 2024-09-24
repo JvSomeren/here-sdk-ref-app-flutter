@@ -77,6 +77,12 @@ class WayPointsController extends ValueNotifier<List<WayPointInfo>> {
   /// Returns length of the waypoints list.
   int get length => super.value.length;
 
+  /// Return the first waypoint in the waypoints list.
+  WayPointInfo get first => super.value.first;
+
+  /// Return the last waypoint in the waypoints list.
+  WayPointInfo get last => super.value.last;
+
   /// Adds waypoint to the list.
   void add(WayPointInfo wp) {
     super.value.add(wp);

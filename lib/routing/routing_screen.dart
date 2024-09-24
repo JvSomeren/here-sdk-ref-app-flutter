@@ -28,9 +28,11 @@ import 'package:here_sdk/mapview.dart';
 import 'package:here_sdk/routing.dart' as Routing;
 import 'package:here_sdk/search.dart';
 import 'package:here_sdk_reference_application_flutter/common/extensions/error_handling/routing_error_extension.dart';
+import 'package:here_sdk_reference_application_flutter/common/extensions/pigeon_extensions.dart';
 import 'package:here_sdk_reference_application_flutter/common/util.dart';
 import 'package:provider/provider.dart';
 
+import '../car/car_to_flutter.dart';
 import '../common/application_preferences.dart';
 import '../common/custom_map_style_settings.dart';
 import '../common/error_toast.dart';
@@ -39,6 +41,7 @@ import '../common/reset_location_button.dart';
 import '../common/ui_style.dart';
 import '../common/util.dart' as Util;
 import '../navigation/navigation_screen.dart';
+import '../pigeons/car.pg.dart';
 import '../positioning/positioning.dart';
 import '../route_preferences/route_preferences_model.dart';
 import '../route_preferences/route_preferences_screen.dart';
@@ -77,7 +80,8 @@ class RoutingScreen extends StatefulWidget {
   _RoutingScreenState createState() => _RoutingScreenState();
 }
 
-class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateMixin, Positioning {
+class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateMixin, Positioning
+    implements CarRoutingListener {
   static const double _kTapRadius = 60; // pixels
   static const double _kRouteCardHeight = 85;
 
@@ -103,6 +107,8 @@ class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateM
   late TabController _transportModesTabController;
   late List<TransportModes> _transportModes;
   late WayPointsController _wayPointsController;
+
+  late CarToFlutter _carToFlutterApi;
 
   @override
   void initState() {
@@ -137,10 +143,19 @@ class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateM
       currentLocation: widget.currentPosition,
     );
     _wayPointsController.addListener(() => _beginRouting());
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+
+      _carToFlutterApi =
+        Provider.of<CarToFlutter>(context, listen: false);
+      _carToFlutterApi.addRoutingListener(this);
+    });
   }
 
   @override
   void dispose() {
+    _carToFlutterApi.removeRoutingListener(this);
     _routePoiHandler.release();
     _transportModesTabController.dispose();
     _routesTabController.dispose();
@@ -431,6 +446,8 @@ class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateM
 
     _zoomToRoutes();
     _routePoiHandler.updatePoiForRoute(_routes[_selectedRouteIndex]);
+
+    FlutterToCarApi().onRouteOptionSelected(_selectedRouteIndex);
   }
 
   Widget _buildTrafficButton(BuildContext context) {
@@ -502,7 +519,10 @@ class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateM
               IconButton(
                 icon: Icon(Icons.close),
                 color: colorScheme.primary,
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  FlutterToCarApi().onStopRouting();
+                  Navigator.of(context).pop();
+                },
               ),
             ],
           ),
@@ -584,6 +604,9 @@ class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateM
   }
 
   _onRoutingEnd(Routing.RoutingError? error, List<Routing.Route>? routes) {
+    final origin = _wayPointsController.first;
+    final destination = _wayPointsController.last;
+
     if (routes == null || routes.isEmpty) {
       if (error != null) {
         setState(() => _routingInProgress = false);
@@ -595,6 +618,13 @@ class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateM
           );
         }
       }
+
+      FlutterToCarApi().onRouteOptionsUpdated(PgRouteOptionsUpdatedMessage(
+        origin: origin.coordinates.toPgLatLng(),
+        destination: destination.coordinates.toPgLatLng(),
+        routeOptions: [],
+      ));
+
       return;
     }
 
@@ -609,6 +639,12 @@ class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateM
       vsync: this,
     );
     _routesTabController.addListener(() => _updateSelectedRoute());
+
+    FlutterToCarApi().onRouteOptionsUpdated(PgRouteOptionsUpdatedMessage(
+      origin: origin.coordinates.toPgLatLng(),
+      destination: destination.coordinates.toPgLatLng(),
+      routeOptions: routes.map((e) => e.toPgRouteOption(context)).toList(),
+    ));
 
     _addRoutesToMap();
 
@@ -629,5 +665,15 @@ class _RoutingScreenState extends State<RoutingScreen> with TickerProviderStateM
 
     setState(() => _transportModesTabController.index = max(_transportModes.indexOf(activeTransportMode), 0));
     _beginRouting();
+  }
+
+  @override
+  void stopRouting() {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void updateSelectedRouteOption(int routeOptionIndex) {
+    _routesTabController.animateTo(routeOptionIndex);
   }
 }

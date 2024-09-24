@@ -8,6 +8,13 @@ import 'dart:typed_data' show Float64List, Int32List, Int64List, Uint8List;
 import 'package:flutter/foundation.dart' show ReadBuffer, WriteBuffer;
 import 'package:flutter/services.dart';
 
+PlatformException _createConnectionError(String channelName) {
+  return PlatformException(
+    code: 'channel-error',
+    message: 'Unable to establish connection on channel: "$channelName".',
+  );
+}
+
 List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty = false}) {
   if (empty) {
     return <Object?>[];
@@ -18,15 +25,151 @@ List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty
   return <Object?>[error.code, error.message, error.details];
 }
 
+class PgRouteOption {
+  PgRouteOption({
+    required this.hashCode,
+    required this.lengthInMeters,
+    required this.durationInSeconds,
+    required this.distanceString,
+    required this.durationString,
+  });
+
+  int hashCode;
+
+  int lengthInMeters;
+
+  int durationInSeconds;
+
+  String distanceString;
+
+  String durationString;
+
+  Object encode() {
+    return <Object?>[
+      hashCode,
+      lengthInMeters,
+      durationInSeconds,
+      distanceString,
+      durationString,
+    ];
+  }
+
+  static PgRouteOption decode(Object result) {
+    result as List<Object?>;
+    return PgRouteOption(
+      hashCode: result[0]! as int,
+      lengthInMeters: result[1]! as int,
+      durationInSeconds: result[2]! as int,
+      distanceString: result[3]! as String,
+      durationString: result[4]! as String,
+    );
+  }
+}
+
+class PgLatLng {
+  PgLatLng({
+    required this.latitude,
+    required this.longitude,
+  });
+
+  double latitude;
+
+  double longitude;
+
+  Object encode() {
+    return <Object?>[
+      latitude,
+      longitude,
+    ];
+  }
+
+  static PgLatLng decode(Object result) {
+    result as List<Object?>;
+    return PgLatLng(
+      latitude: result[0]! as double,
+      longitude: result[1]! as double,
+    );
+  }
+}
+
+class PgRouteOptionsUpdatedMessage {
+  PgRouteOptionsUpdatedMessage({
+    required this.origin,
+    required this.destination,
+    required this.routeOptions,
+  });
+
+  PgLatLng origin;
+
+  PgLatLng destination;
+
+  List<PgRouteOption?> routeOptions;
+
+  Object encode() {
+    return <Object?>[
+      origin,
+      destination,
+      routeOptions,
+    ];
+  }
+
+  static PgRouteOptionsUpdatedMessage decode(Object result) {
+    result as List<Object?>;
+    return PgRouteOptionsUpdatedMessage(
+      origin: result[0]! as PgLatLng,
+      destination: result[1]! as PgLatLng,
+      routeOptions: (result[2] as List<Object?>?)!.cast<PgRouteOption?>(),
+    );
+  }
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
+  @override
+  void writeValue(WriteBuffer buffer, Object? value) {
+    if (value is int) {
+      buffer.putUint8(4);
+      buffer.putInt64(value);
+    }    else if (value is PgRouteOption) {
+      buffer.putUint8(129);
+      writeValue(buffer, value.encode());
+    }    else if (value is PgLatLng) {
+      buffer.putUint8(130);
+      writeValue(buffer, value.encode());
+    }    else if (value is PgRouteOptionsUpdatedMessage) {
+      buffer.putUint8(131);
+      writeValue(buffer, value.encode());
+    } else {
+      super.writeValue(buffer, value);
+    }
+  }
+
+  @override
+  Object? readValueOfType(int type, ReadBuffer buffer) {
+    switch (type) {
+      case 129: 
+        return PgRouteOption.decode(readValue(buffer)!);
+      case 130: 
+        return PgLatLng.decode(readValue(buffer)!);
+      case 131: 
+        return PgRouteOptionsUpdatedMessage.decode(readValue(buffer)!);
+      default:
+        return super.readValueOfType(type, buffer);
+    }
+  }
 }
 
 abstract class CarToFlutterApi {
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
 
   void setupMapView();
+
+  void updateSelectedRouteOption(int routeOptionIndex);
+
+  void stopRouting();
+
+  void onDisconnect();
 
   static void setUp(CarToFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
     messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
@@ -48,6 +191,171 @@ abstract class CarToFlutterApi {
           }
         });
       }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.here_sdk_reference_application_flutter.CarToFlutterApi.updateSelectedRouteOption$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.here_sdk_reference_application_flutter.CarToFlutterApi.updateSelectedRouteOption was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final int? arg_routeOptionIndex = (args[0] as int?);
+          assert(arg_routeOptionIndex != null,
+              'Argument for dev.flutter.pigeon.here_sdk_reference_application_flutter.CarToFlutterApi.updateSelectedRouteOption was null, expected non-null int.');
+          try {
+            api.updateSelectedRouteOption(arg_routeOptionIndex!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.here_sdk_reference_application_flutter.CarToFlutterApi.stopRouting$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          try {
+            api.stopRouting();
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.here_sdk_reference_application_flutter.CarToFlutterApi.onDisconnect$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          try {
+            api.onDisconnect();
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+  }
+}
+
+class FlutterToCarApi {
+  /// Constructor for [FlutterToCarApi].  The [binaryMessenger] named argument is
+  /// available for dependency injection.  If it is left null, the default
+  /// BinaryMessenger will be used which routes to the host platform.
+  FlutterToCarApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+      : pigeonVar_binaryMessenger = binaryMessenger,
+        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  final BinaryMessenger? pigeonVar_binaryMessenger;
+
+  static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
+
+  final String pigeonVar_messageChannelSuffix;
+
+  Future<void> onStartRouting() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.here_sdk_reference_application_flutter.FlutterToCarApi.onStartRouting$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> onRouteOptionsUpdated(PgRouteOptionsUpdatedMessage message) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.here_sdk_reference_application_flutter.FlutterToCarApi.onRouteOptionsUpdated$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[message]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> onRouteOptionSelected(int routeOptionIndex) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.here_sdk_reference_application_flutter.FlutterToCarApi.onRouteOptionSelected$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[routeOptionIndex]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> onStopRouting() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.here_sdk_reference_application_flutter.FlutterToCarApi.onStopRouting$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
     }
   }
 }

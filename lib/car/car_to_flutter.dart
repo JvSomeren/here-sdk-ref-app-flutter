@@ -8,6 +8,11 @@ import '../pigeons/car.pg.dart';
 import '../positioning/positioning.dart';
 import '../positioning/positioning_engine.dart';
 
+abstract interface class CarRoutingListener {
+    void stopRouting();
+    void updateSelectedRouteOption(int routeOptionIndex);
+}
+
 class CarToFlutter extends CarToFlutterApi {
     late final PositioningEngine _positioningEngine;
     StreamSubscription<Location>? _locationUpdatesSubscription;
@@ -56,5 +61,34 @@ class CarToFlutter extends CarToFlutterApi {
                     visualNavigator.onLocationUpdated(event);
                 });
         });
+    }
+    
+    final Set<CarRoutingListener> _carRoutingListeners = {};
+
+    void addRoutingListener(CarRoutingListener listener) {
+        _carRoutingListeners.add(listener);
+    }
+
+    void removeRoutingListener(CarRoutingListener listener) {
+        _carRoutingListeners.remove(listener);
+    }
+
+    @override
+    void stopRouting() {
+        for (final listener in _carRoutingListeners) {
+            listener.stopRouting();
+        }
+    }
+
+    @override
+    void updateSelectedRouteOption(int routeOptionIndex) {
+        for (final listener in _carRoutingListeners) {
+            listener.updateSelectedRouteOption(routeOptionIndex);
+        }
+    }
+
+    @override
+    void onDisconnect() {
+        _locationUpdatesSubscription?.cancel();
     }
 }

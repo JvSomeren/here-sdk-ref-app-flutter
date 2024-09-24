@@ -48,6 +48,7 @@ import 'common/ui_style.dart';
 import 'common/util.dart' as Util;
 import 'download_maps/download_maps_screen.dart';
 import 'download_maps/map_loader_controller.dart';
+import 'pigeons/car.pg.dart';
 import 'positioning/no_location_warning_widget.dart';
 import 'positioning/positioning.dart';
 import 'positioning/positioning_engine.dart';
@@ -655,6 +656,8 @@ class _LandingScreenState extends State<LandingScreen> with Positioning, Widgets
   void _showRoutingScreen(WayPointInfo destination) async {
     final GeoCoordinates currentPosition =
         lastKnownLocation != null ? lastKnownLocation!.coordinates : Positioning.initPosition;
+
+    FlutterToCarApi().onStartRouting();
 
     await Navigator.of(context).pushNamed(
       RoutingScreen.navRoute,

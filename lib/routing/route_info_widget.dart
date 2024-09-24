@@ -57,7 +57,7 @@ class RouteInfo extends StatelessWidget {
               children: [
                 RichText(
                   text: TextSpan(
-                    text: _buildDurationString(context, route.duration.inSeconds) + " ",
+                    text: Util.makeDurationString(context, route.duration.inSeconds) + " ",
                     style: TextStyle(
                       fontSize: UIStyle.hugeFontSize,
                       fontWeight: FontWeight.bold,
@@ -67,7 +67,7 @@ class RouteInfo extends StatelessWidget {
                       if (route.trafficDelay.inSeconds > Duration.secondsPerMinute)
                         TextSpan(
                           text: Util.formatString(AppLocalizations.of(context)!.trafficDelayText,
-                              [_buildDurationString(context, route.trafficDelay.inSeconds)]),
+                              [Util.makeDurationString(context, route.trafficDelay.inSeconds)]),
                           style: TextStyle(
                             fontSize: UIStyle.mediumFontSize,
                             color: UIStyle.trafficWarningColor,
@@ -146,21 +146,5 @@ class RouteInfo extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _buildDurationString(BuildContext context, int durationInSeconds) {
-    int minutes = (durationInSeconds / 60).truncate();
-    int hours = (minutes / 60).truncate();
-    minutes = minutes % 60;
-
-    if (hours == 0) {
-      return "$minutes ${AppLocalizations.of(context)!.minuteAbbreviationText}";
-    } else {
-      String result = "$hours ${AppLocalizations.of(context)!.hourAbbreviationText}";
-      if (minutes != 0) {
-        result += " $minutes ${AppLocalizations.of(context)!.minuteAbbreviationText}";
-      }
-      return result;
-    }
   }
 }

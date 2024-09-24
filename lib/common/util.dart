@@ -57,6 +57,24 @@ String makeDistanceString(BuildContext context, int? distance) {
   }
 }
 
+String makeDurationString(BuildContext context, int durationInSeconds) {
+    int minutes = (durationInSeconds / 60).truncate();
+    int hours = (minutes / 60).truncate();
+    minutes = minutes % 60;
+
+    if (hours == 0) {
+        return "$minutes ${AppLocalizations.of(context)!.minuteAbbreviationText}";
+    } else {
+        String result =
+            "$hours ${AppLocalizations.of(context)!.hourAbbreviationText}";
+        if (minutes != 0) {
+            result +=
+                " $minutes ${AppLocalizations.of(context)!.minuteAbbreviationText}";
+        }
+        return result;
+    }
+}
+
 /// Returns localized storage [size] string in bytes.
 String makeStorageSizeString(BuildContext context, int size) {
   if (size < 1024) {
