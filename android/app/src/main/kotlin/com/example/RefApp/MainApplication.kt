@@ -36,5 +36,21 @@ class MainApplication : Application() {
                 DartExecutor.DartEntrypoint.createDefault())
 
         FlutterEngineCache.getInstance().put(MainActivity.FLUTTER_ENGINE_ID, flutterEngine)
+
+        FlutterToCarApi.setUp(flutterEngine.dartExecutor.binaryMessenger, FlutterToCar.instance)
+    }
+
+    override fun onTerminate() {
+        FlutterEngineCache.getInstance()
+            .get(MainActivity.FLUTTER_ENGINE_ID)
+            ?.dartExecutor
+            ?.binaryMessenger
+            ?.let { binaryMessenger ->
+                FlutterToCarApi.setUp(binaryMessenger, null)
+            }
+
+        FlutterEngineCache.getInstance().remove(MainActivity.FLUTTER_ENGINE_ID)
+
+        super.onTerminate()
     }
 }

@@ -9,12 +9,14 @@ import androidx.car.app.model.Action
 import androidx.car.app.model.ActionStrip
 import androidx.car.app.model.Template
 import androidx.car.app.navigation.model.NavigationTemplate
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.here.sdk.mapview.MapSurface
 import com.here.sdk.mapview.MapSurfaceHost
 import io.flutter.embedding.engine.FlutterEngineCache
 
-
-class HelloMapScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback {
+class HelloMapScreen(carContext: CarContext) : Screen(carContext), SurfaceCallback,
+    DefaultLifecycleObserver, FlutterToCar.GenericObserver {
     private val mapSurface: MapSurface
     private val mapSurfaceHost: MapSurfaceHost?
     private val carToFlutterApi: CarToFlutterApi?
@@ -32,6 +34,15 @@ class HelloMapScreen(carContext: CarContext) : Screen(carContext), SurfaceCallba
 
         mapSurfaceHost = binaryMessenger?.let { MapSurfaceHost(123, it, mapSurface) }
         carToFlutterApi = binaryMessenger?.let { CarToFlutterApi(it) }
+
+        lifecycle.addObserver(this)
+        FlutterToCar.instance.addObserver(this)
+    }
+
+    override fun onDestroy(owner: LifecycleOwner) {
+        FlutterToCar.instance.removeObserver(this)
+
+        carToFlutterApi?.onDisconnect { }
     }
 
     override fun onGetTemplate(): Template {
@@ -67,5 +78,15 @@ class HelloMapScreen(carContext: CarContext) : Screen(carContext), SurfaceCallba
 
     private fun exit() {
         carContext.finishCarApp()
+    }
+
+    /**
+     * [FlutterToCar.GenericObserver] methods
+     */
+
+    /** */
+
+    override fun onStartRouting() {
+        screenManager.push(RoutingScreen(carContext))
     }
 }
