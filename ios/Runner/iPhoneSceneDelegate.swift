@@ -21,5 +21,22 @@ class iPhoneSceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.makeKeyAndVisible()
         
         iPhoneSceneDelegate.flutterEngine = flutterEngine
+        
+        FlutterToCarApiSetup.setUp(
+            binaryMessenger: flutterEngine.binaryMessenger,
+            api: FlutterToCar.shared
+        )
+    }
+    
+    func sceneDidDisconnect(_ scene: UIScene) {
+        if let flutterEngine = iPhoneSceneDelegate.flutterEngine {
+            FlutterToCarApiSetup.setUp(
+                binaryMessenger: flutterEngine.binaryMessenger,
+                api: nil
+            )
+            
+            flutterEngine.destroyContext()
+            iPhoneSceneDelegate.flutterEngine = nil
+        }
     }
 }
